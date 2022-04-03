@@ -64,4 +64,38 @@ const gitlet = module.exports = {
             }
         }
     },
+
+    commit: function (opts) {
+        files.assertInRepo();
+        config.assertNotBare();
+
+        const treeHash = gitlet.write_tree();
+        const headDesc = refs.isHeadDetached() ? "detached HEAD" : refs.headBranchName();
+
+        if (refs.hash("HEAD") !== undefined &&
+            treeHash === objects.treeHash(objects.read(refs.hash("HEAD")))) {
+            throw new Error("# On " + headDesc + "\nnothing to commit, working directory clean");
+
+        } else {
+            var conflictedPaths = index.conflictedPaths();
+
+            if (merge.isMergeInProgress() && conflictedPaths.length > 0) {
+                throw new Error(conflictedPaths.map(function (p) { return "U " + p; }).join("\n") + "\ncannot commit because you have unmerged files\n");
+            } else {
+                const m = merge.isMergeInProgress() ? files.read(files.gitletPath("MERGE_MSG")) : opts.m;
+
+                const commitHash = objects.writeCommit(treeHash, m, refs.commitParentHashes());
+
+                gitlet.update_ref("HEAD", commitHash);
+
+                if (merge.isMergeInProgress()) {
+                    fs.unlinkSync(files.gitletPath("MERGE_MSG"));
+                    refs.rm("MERGE_HEAD");
+                    return "Merge made by the three-way strategy";
+                } else {
+                    return "[" + headDesc + " " + commitHash + "] " + m;
+                } 
+            }
+       }
+    },   
 }
