@@ -4,7 +4,7 @@ const { config } = require('process');
 
 const gitlet = module.exports = {
 
-    init: function(opts) {
+    init: function (opts) {
 
         if (FileSystem.inRepo()) { return; }
 
@@ -24,7 +24,7 @@ const gitlet = module.exports = {
         files.writeFilesFromTree(opts.bare ? gitletStructure : { ".gitlet": gitletStructure }, process.cwd());
     },
 
-    add: function(path, _) {
+    add: function (path, _) {
         files.assertInRepo();
         config.assertNotBare();
 
@@ -37,7 +37,7 @@ const gitlet = module.exports = {
         }
     },
 
-    rm: function(path, opts) {
+    rm: function (path, opts) {
         files.assertInRepo();
         config.assertNotBare();
         opts = opts || {};
@@ -65,7 +65,7 @@ const gitlet = module.exports = {
         }
     },
 
-    commit: function(opts) {
+    commit: function (opts) {
         files.assertInRepo();
         config.assertNotBare();
 
@@ -94,18 +94,18 @@ const gitlet = module.exports = {
                     return "Merge made by the three-way strategy";
                 } else {
                     return "[" + headDesc + " " + commitHash + "] " + m;
-                } 
+                }
             }
-       }
+        }
     },
-    
-    branch: function(name, opts) {
+
+    branch: function (name, opts) {
         files.assertInRepo();
         opts = opts || {};
 
         if (name === undefined) {
-            return Object.keys(refs.localHeads()).map(function(branch) {
-              return (branch === refs.headBranchName() ? "* " : "  ") + branch;
+            return Object.keys(refs.localHeads()).map(function (branch) {
+                return (branch === refs.headBranchName() ? "* " : "  ") + branch;
             }).join("\n") + "\n";
 
         } else if (refs.hash("HEAD") === undefined) {
@@ -117,5 +117,44 @@ const gitlet = module.exports = {
         } else {
             gitlet.update_ref(refs.toLocalRef(name), refs.hash("HEAD"));
         }
-    }
+    },
+
+    checkout: function (ref, _) {
+        files.assertInRepo();
+        config.assertNotBare();
+
+        const toHash = refs.hash(ref);
+
+        if (!objects.exists(toHash)) {
+            throw new Error(ref + " did not match any file(s) known to Gitlet");
+
+        } else if (objects.type(objects.read(toHash)) !== "commit") {
+            throw new Error("reference is not a tree: " + ref);
+
+        } else if (ref === refs.headBranchName() || ref === files.read(files.gitletPath("HEAD"))) {
+            return "Already on " + ref;
+
+        } else {
+            const paths = diff.changedFilesCommitWouldOverwrite(toHash);
+
+            if (paths.length > 0) {
+                throw new Error("local changes would be lost\n" + paths.join("\n") + "\n");
+
+            } else {
+                process.chdir(files.workingCopyPath());
+
+                const isDetachingHead = objects.exists(ref);
+
+                workingCopy.write(diff.diff(refs.hash("HEAD"), toHash));
+
+                refs.write("HEAD", isDetachingHead ? toHash : "ref: " + refs.toLocalRef(ref));
+
+                index.write(index.tocToIndex(objects.commitToc(toHash)));
+
+                return isDetachingHead ?
+                    "Note: checking out " + toHash + "\nYou are in detached HEAD state." :
+                    "Switched to branch " + ref;
+            }
+        }
+    },
 }
