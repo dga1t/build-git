@@ -176,4 +176,19 @@ const gitlet = module.exports = {
                 .join("\n") + "\n";
         }
     },
+
+    remote: function (command, name, path, _) {
+        files.assertInRepo();
+
+        if (command !== "add") {
+            throw new Error("unsupported");
+
+        } else if (name in config.read()["remote"]) {
+            throw new Error("remote " + name + " already exists");
+
+        } else {
+            config.write(util.setIn(config.read(), ["remote", name, "url", path]));
+            return "\n";
+        }
+    },
 }
