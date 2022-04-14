@@ -222,9 +222,47 @@ const gitlet = module.exports = {
                 refs.write("FETCH_HEAD", newHash + " branch " + branch + " of " + remoteUrl);
 
                 return ["From " + remoteUrl, "Count " + remoteObjects.length,
-                        branch + " -> " + remote + "/" + branch +
-                        (merge.isAForceFetch(oldHash, newHash) ? " (forced)" : "")].join("\n") + "\n";
+                branch + " -> " + remote + "/" + branch +
+                (merge.isAForceFetch(oldHash, newHash) ? " (forced)" : "")].join("\n") + "\n";
             }
         }
-    }
+    },
+
+    merge: function (ref, _) {
+        files.assertInRepo();
+        config.assertNotBare();
+
+        var receiverHash = refs.hash("HEAD");
+
+        var giverHash = refs.hash(ref);
+
+        if (refs.isHeadDetached()) {
+            throw new Error("unsupported");
+
+        } else if (giverHash === undefined || objects.type(objects.read(giverHash)) !== "commit") {
+            throw new Error(ref + ": expected commit type");
+
+        } else if (objects.isUpToDate(receiverHash, giverHash)) {
+            return "Already up-to-date";
+
+        } else {
+            var paths = diff.changedFilesCommitWouldOverwrite(giverHash);
+
+            if (paths.length > 0) {
+                throw new Error("local changes would be lost\n" + paths.join("\n") + "\n");
+
+            } else if (merge.canFastForward(receiverHash, giverHash)) {
+                merge.writeFastForwardMerge(receiverHash, giverHash);
+                return "Fast-forward";
+            } else {
+                merge.writeNonFastForwardMerge(receiverHash, giverHash, ref);
+
+                if (merge.hasConflicts(receiverHash, giverHash)) {
+                    return "Automatic merge failed. Fix conflicts and commit the result.";
+                } else {
+                    return gitlet.commit();
+                }
+            } 
+        }
+    },
 }
