@@ -265,4 +265,11 @@ const gitlet = module.exports = {
             } 
         }
     },
+
+    pull: function (remote, branch, _) {
+        files.assertInRepo();
+        config.assertNotBare();
+        gitlet.fetch(remote, branch);
+        return gitlet.merge("FETCH_HEAD");
+    }
 }
