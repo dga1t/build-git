@@ -262,7 +262,7 @@ const gitlet = module.exports = {
                 } else {
                     return gitlet.commit();
                 }
-            } 
+            }
         }
     },
 
@@ -271,5 +271,44 @@ const gitlet = module.exports = {
         config.assertNotBare();
         gitlet.fetch(remote, branch);
         return gitlet.merge("FETCH_HEAD");
-    }
+    },
+
+    push: function (remote, branch, opts) {
+        files.assertInRepo();
+        opts = opts || {};
+
+        if (remote === undefined || branch === undefined) {
+            throw new Error("unsupported");
+
+        } else if (!(remote in config.read().remote)) {
+            throw new Error(remote + " does not appear to be a git repository");
+
+        } else {
+            const remotePath = config.read().remote[remote].url;
+            const remoteCall = util.onRemote(remotePath);
+
+            if (remoteCall(refs.isCheckedOut, branch)) {
+                throw new Error("refusing to update checked out branch " + branch);
+
+            } else {
+                var receiverHash = remoteCall(refs.hash, branch);
+
+                var giverHash = refs.hash(branch);
+
+                if (objects.isUpToDate(receiverHash, giverHash)) {
+                    return "Already up-to-date";
+
+                } else if (!opts.f && !merge.canFastForward(receiverHash, giverHash)) {
+                    throw new Error("failed to push some refs to " + remotePath);
+
+                } else {
+                    objects.allObjects().forEach(function(o) { remoteCall(objects.write, o); });
+
+                    remoteCall(gitlet.update_ref, refs.toLocalRef(branch), giverHash);
+
+                    return ["To " + remotePath, "Count " + objects.allObjects().length, branch + " -> " + branch].join("\n") + "\n";
+                }
+            }
+        }
+    },
 }
