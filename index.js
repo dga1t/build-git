@@ -302,7 +302,7 @@ const gitlet = module.exports = {
                     throw new Error("failed to push some refs to " + remotePath);
 
                 } else {
-                    objects.allObjects().forEach(function(o) { remoteCall(objects.write, o); });
+                    objects.allObjects().forEach(function (o) { remoteCall(objects.write, o); });
 
                     remoteCall(gitlet.update_ref, refs.toLocalRef(branch), giverHash);
 
@@ -311,4 +311,12 @@ const gitlet = module.exports = {
             }
         }
     },
+
+    statuss: function (_) {
+        files.assertInRepo();
+        config.assertNotBare();
+        return statuss.toString();
+    },
+
+    
 }
