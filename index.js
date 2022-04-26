@@ -352,5 +352,41 @@ const gitlet = module.exports = {
 
             return "Cloning into " + targetPath;
         }
+    },
+
+    update_index: function (path, opts) {
+        files.assertInRepo();
+        config.assertNotBare();
+        opts = opts || {};
+
+        const pathFromRoot = files.pathFromRepoRoot(path);
+        const isOnDisk = fs.existsSync(path);
+        const isInIndex = index.hasFile(path, 0);
+
+        if (isOnDisk && fs.statSync(path).isDirectory()) {
+            throw new Error(pathFromRoot + " is a directory - add files inside\n");
+
+        } else if (opts.remove && !isOnDisk && isInIndex) {
+
+            if (index.isFileInConflict(path)) {
+                throw new Error("unsupported");
+
+            } else {
+                index.writeRm(path);
+                return "\n";
+            }
+        } else if (opts.remove && !isOnDisk && !isInIndex) {
+            return "\n";
+
+        } else if (!opts.add && isOnDisk && !isInIndex) {
+            throw new Error("cannot add " + pathFromRoot + " to index - use --add option\n");
+
+        } else if (isOnDisk && (opts.add || isInIndex)) {
+            index.writeNonConflict(path, files.read(files.workingCopyPath(path)));
+            return "\n";
+
+        } else if (!opts.remove && !isOnDisk) {
+            throw new Error(pathFromRoot + " does not exist and --remove not passed\n");
+        }
     }
 }
