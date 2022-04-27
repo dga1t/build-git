@@ -388,5 +388,10 @@ const gitlet = module.exports = {
         } else if (!opts.remove && !isOnDisk) {
             throw new Error(pathFromRoot + " does not exist and --remove not passed\n");
         }
-    }
+    },
+
+    write_tree: function (_) {
+        files.assertInRepo();
+        return objects.writeTree(files.nestFlatTree(index.toc()));
+    },
 }
