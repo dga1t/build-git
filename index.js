@@ -394,4 +394,24 @@ const gitlet = module.exports = {
         files.assertInRepo();
         return objects.writeTree(files.nestFlatTree(index.toc()));
     },
-}
+
+    update_ref: function (refToUpdate, refToUpdateTo, _) {
+        files.assertInRepo();
+
+        const hash = refs.hash(refToUpdateTo);
+
+        if (!objects.exists(hash)) {
+            throw new Error(refToUpdateTo + " not a valid SHA1");
+
+        } else if (!refs.isRef(refToUpdate)) {
+            throw new Error("cannot lock the ref " + refToUpdate);
+
+        } else if (objects.type(objects.read(hash)) !== "commit") {
+            const branch = refs.terminalRef(refToUpdate);
+            throw new Error(branch + " cannot refer to non-commit object " + hash + "\n");
+
+        } else {
+            refs.write(refs.terminalRef(refToUpdate), hash);
+        }
+    }
+};
