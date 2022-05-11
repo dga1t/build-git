@@ -16,9 +16,8 @@ const refs = {
 
         } else {
             return refs.toLocalRef(ref);
-            
         }
     },
 
-    
+
 }
