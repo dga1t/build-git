@@ -6,7 +6,7 @@ const refs = {
             ["HEAD", "FETCH_HEAD", "MERGE_HEAD"].indexOf(ref) !== -1)
     },
 
-    terminalRef: function(ref) {
+    terminalRef: function (ref) {
 
         if (ref === "HEAD" && !refs.isHeadDetached()) {
             return files.read(files.gitletPath("HEAD")).match("ref: (refs/heads/.+)")[1];
@@ -19,5 +19,19 @@ const refs = {
         }
     },
 
+    hash: function (refOrHash) {
+        if (objects.exists(refOrHash)) {
+            return refOrHash;
+        } else {
+            const terminalRef = refs.terminalRef(refOrHash);
 
+            if (terminalRef === "FETCH_HEAD") {
+                return refs.fetchHeadBranchToMerge(refs.headBranchName());
+            } else if (refs.exists(terminalRef)) {
+                return files.read(files.gitletPath(terminalRef));
+            }
+        }
+    },
+
+    
 }
