@@ -33,5 +33,25 @@ const refs = {
         }
     },
 
-    
+    isHeadDetached: function () {
+        return files.read(files.gitletPath("HEAD")).match("refs") === null;
+    },
+
+    isCheckedOut: function (branch) {
+        return !config.isBare() && refs.headBranchName() === branch;
+    },
+
+    toLocalRef: function (name) {
+        return "refs/heads/" + name;
+    },
+
+    toRemoteRef: function (remote, name) {
+        return "refs/remotes/" + remote + "/" + name;
+    },
+
+    write: function (ref, content) {
+        if (refs.isRef(ref)) {
+            files.write(files.gitletPath(nodePath.normalize(ref)), content);
+        }
+    },
 }
