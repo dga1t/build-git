@@ -54,4 +54,33 @@ const refs = {
             files.write(files.gitletPath(nodePath.normalize(ref)), content);
         }
     },
+
+    rm: function (ref) {
+        if (refs.isRef(ref)) {
+            fs.unlinkSync(files.gitletPath(ref));
+        }
+    },
+
+    fetchHeadBranchToMerge: function (branchName) {
+        return util.lines(files.read(files.gitletPath("FETCH_HEAD")))
+            .filter(function (l) { return l.match("^.+ branch " + branchName + " of"); })
+            .map(function (l) { return l.match("^([^ ]+) ")[1]; })[0];
+    },
+
+    localHeads: function () {
+        return fs.readdirSync(nodePath.join(files.gitletPath(), "refs", "heads"))
+            .reduce(function (o, n) { return util.setIn(o, [n, refs.hash(n)]); }, {});
+    },
+
+    exists: function (ref) {
+        return refs.isRef(ref) && fs.existsSync(files.gitletPath(ref));
+    },
+
+    headBranchName: function () {
+        if (!refs.isHeadDetached()) {
+            return files.read(files.gitletPath("HEAD")).match("refs/heads/(.+)")[1];
+        }
+    },
+
+    
 }
