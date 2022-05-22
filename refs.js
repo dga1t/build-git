@@ -82,5 +82,17 @@ const refs = {
         }
     },
 
-    
-}
+    commitParentHashes: function() {
+        const headHash = refs.hash("HEAD");
+
+        if (merge.isMergeInProgress()) {
+            return [headHash, refs.hash("MERGE_HEAD")];
+
+        } else if (headHash === undefined) {
+            return [];
+
+        } else {
+            return [headHash];
+        }
+    }
+};
