@@ -13,5 +13,17 @@ const objects = {
         return objects.write(treeObject);
     },
 
+    fileTree: function (treeHash, tree) {
+        if (tree === undefined) { return objects.fileTree(treeHash, {}); }
 
+        util.lines(objects.read(treeHash)).forEach(function (line) {
+            const lineTokens = line.split(/ /);
+
+            tree[lineTokens[2]] = lineTokens[0] === "tree" ?
+                objects.fileTree(lineTokens[1], {}) :
+                lineTokens[1];
+        });
+
+        return tree;
+    },
 }
