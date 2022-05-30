@@ -26,4 +26,10 @@ const objects = {
 
         return tree;
     },
+
+    writeCommit: function (treeHash, message, parentHashes) {
+        return objects.write("commit " + treeHash + "\n" +
+            parentHashes.map(function (h) { return "parent " + h + "\n"; }).join("") +
+            "Date:  " + new Date().toString() + "\n" + "\n" + "    " + message + "\n");
+    },
 }
