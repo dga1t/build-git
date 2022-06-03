@@ -32,4 +32,15 @@ const objects = {
             parentHashes.map(function (h) { return "parent " + h + "\n"; }).join("") +
             "Date:  " + new Date().toString() + "\n" + "\n" + "    " + message + "\n");
     },
+
+    write: function (str) {
+        files.write(nodePath.join(files.gitletPath(), "objects", util.hash(str)), str);
+        return util.hash(str);
+    },
+
+    isUpToDate: function(receiverHash, giverHash) {
+        return receiverHash !== undefined && (receiverHash === giverHash || objects.isAncestor(receiverHash, giverHash));
+    },
+
+    
 }
