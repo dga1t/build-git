@@ -38,9 +38,20 @@ const objects = {
         return util.hash(str);
     },
 
-    isUpToDate: function(receiverHash, giverHash) {
+    isUpToDate: function (receiverHash, giverHash) {
         return receiverHash !== undefined && (receiverHash === giverHash || objects.isAncestor(receiverHash, giverHash));
     },
 
-    
+    exists: function (objectHash) {
+        return objectHash !== undefined &&
+            fs.existsSync(nodePath.join(files.gitletPath(), "objects", objectHash));
+    },
+
+    read: function (objectHash) {
+        if (objectHash !== undefined) {
+            const objectPath = nodePath.join(files.gitletPath(), "objects", objectHash);
+
+            if (fs.existsSync(objectPath)) return files.read(objectPath);
+        }
+    },
 }
