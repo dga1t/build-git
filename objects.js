@@ -54,4 +54,22 @@ const objects = {
             if (fs.existsSync(objectPath)) return files.read(objectPath);
         }
     },
+
+    allObjects: function () {
+        return fs.readdirSync(files.gitletPath("objects")).map(objects.read);
+    },
+
+    type: function (str) {
+        return { commit: "commit", tree: "tree", blob: "tree" }[str.split(" ")[0]] || "blob";
+    },
+
+    isAncestor: function (descendentHash, ancestorHash) {
+        return objects.ancestors(descendentHash).indexOf(ancestorHash) !== -1;
+    },
+
+    ancestors: function (commitHash) {
+        const parents = objects.parentHashes(objects.read(commitHash));
+        
+        return util.flatten(parents.concat(parents.map(objects.ancestors)));
+    },
 }
