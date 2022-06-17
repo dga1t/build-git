@@ -69,7 +69,25 @@ const objects = {
 
     ancestors: function (commitHash) {
         const parents = objects.parentHashes(objects.read(commitHash));
-        
+
         return util.flatten(parents.concat(parents.map(objects.ancestors)));
     },
+
+    parentHashes: function (str) {
+        if (objects.type(str) === "commit") {
+            return str.split("\n")
+                .filter(function (line) { return line.match(/^parent/); })
+                .map(function (line) { return line.split(" ")[1]; });
+        }
+    },
+
+    treeHash: function (str) {
+        if (objects.type(str) === "commit") {
+            return str.split(/\s/)[1];
+        }
+    },
+
+    commitToc: function (hash) {
+        return files.flattenNestedTree(objects.fileTree(objects.treeHash(objects.read(hash))));
+    }
 }
