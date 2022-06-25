@@ -4,7 +4,7 @@ const { config } = require('process');
 
 const gitlet = module.exports = {
 
-    init: function (opts) {
+    init: function(opts) {
 
         if (FileSystem.inRepo()) { return; }
 
@@ -24,7 +24,7 @@ const gitlet = module.exports = {
         files.writeFilesFromTree(opts.bare ? gitletStructure : { ".gitlet": gitletStructure }, process.cwd());
     },
 
-    add: function (path, _) {
+    add: function(path, _) {
         files.assertInRepo();
         config.assertNotBare();
 
@@ -33,11 +33,11 @@ const gitlet = module.exports = {
         if (addedFiles.length === 0) {
             throw new Error(files.pathFromRepoRoot(path) + " did not match any files");
         } else {
-            addedFiles.forEach(function (p) { gitlet.update_index(p, { add: true }); });
+            addedFiles.forEach(function(p) { gitlet.update_index(p, { add: true }); });
         }
     },
 
-    rm: function (path, opts) {
+    rm: function(path, opts) {
         files.assertInRepo();
         config.assertNotBare();
         opts = opts || {};
@@ -60,12 +60,12 @@ const gitlet = module.exports = {
             }
             else {
                 filesToRm.map(files.workingCopyPath).filter(fs.existsSync).forEach(fs.unlinkSync);
-                filesToRm.forEach(function (p) { gitlet.update_index(p, { remove: true }); });
+                filesToRm.forEach(function(p) { gitlet.update_index(p, { remove: true }); });
             }
         }
     },
 
-    commit: function (opts) {
+    commit: function(opts) {
         files.assertInRepo();
         config.assertNotBare();
 
@@ -80,7 +80,7 @@ const gitlet = module.exports = {
             var conflictedPaths = index.conflictedPaths();
 
             if (merge.isMergeInProgress() && conflictedPaths.length > 0) {
-                throw new Error(conflictedPaths.map(function (p) { return "U " + p; }).join("\n") + "\ncannot commit because you have unmerged files\n");
+                throw new Error(conflictedPaths.map(function(p) { return "U " + p; }).join("\n") + "\ncannot commit because you have unmerged files\n");
             } else {
                 const m = merge.isMergeInProgress() ? files.read(files.gitletPath("MERGE_MSG")) : opts.m;
 
@@ -99,12 +99,12 @@ const gitlet = module.exports = {
         }
     },
 
-    branch: function (name, opts) {
+    branch: function(name, opts) {
         files.assertInRepo();
         opts = opts || {};
 
         if (name === undefined) {
-            return Object.keys(refs.localHeads()).map(function (branch) {
+            return Object.keys(refs.localHeads()).map(function(branch) {
                 return (branch === refs.headBranchName() ? "* " : "  ") + branch;
             }).join("\n") + "\n";
 
@@ -119,7 +119,7 @@ const gitlet = module.exports = {
         }
     },
 
-    checkout: function (ref, _) {
+    checkout: function(ref, _) {
         files.assertInRepo();
         config.assertNotBare();
 
@@ -158,7 +158,7 @@ const gitlet = module.exports = {
         }
     },
 
-    diff: function (ref1, ref2, opts) {
+    diff: function(ref1, ref2, opts) {
         files.assertInRepo();
         config.assertNotBare();
 
@@ -172,12 +172,12 @@ const gitlet = module.exports = {
             const nameToStatus = diff.nameStatus(diff.diff(refs.hash(ref1), refs.hash(ref2)));
 
             return Object.keys(nameToStatus)
-                .map(function (path) { return nameToStatus[path] + " " + path; })
+                .map(function(path) { return nameToStatus[path] + " " + path; })
                 .join("\n") + "\n";
         }
     },
 
-    remote: function (command, name, path, _) {
+    remote: function(command, name, path, _) {
         files.assertInRepo();
 
         if (command !== "add") {
@@ -192,7 +192,7 @@ const gitlet = module.exports = {
         }
     },
 
-    fetch: function (remote, branch, _) {
+    fetch: function(remote, branch, _) {
         files.assertInRepo();
 
         if (remote === undefined || branch === undefined) {
@@ -228,7 +228,7 @@ const gitlet = module.exports = {
         }
     },
 
-    merge: function (ref, _) {
+    merge: function(ref, _) {
         files.assertInRepo();
         config.assertNotBare();
 
@@ -266,14 +266,14 @@ const gitlet = module.exports = {
         }
     },
 
-    pull: function (remote, branch, _) {
+    pull: function(remote, branch, _) {
         files.assertInRepo();
         config.assertNotBare();
         gitlet.fetch(remote, branch);
         return gitlet.merge("FETCH_HEAD");
     },
 
-    push: function (remote, branch, opts) {
+    push: function(remote, branch, opts) {
         files.assertInRepo();
         opts = opts || {};
 
@@ -302,7 +302,7 @@ const gitlet = module.exports = {
                     throw new Error("failed to push some refs to " + remotePath);
 
                 } else {
-                    objects.allObjects().forEach(function (o) { remoteCall(objects.write, o); });
+                    objects.allObjects().forEach(function(o) { remoteCall(objects.write, o); });
 
                     remoteCall(gitlet.update_ref, refs.toLocalRef(branch), giverHash);
 
@@ -312,13 +312,13 @@ const gitlet = module.exports = {
         }
     },
 
-    statuss: function (_) {
+    statuss: function(_) {
         files.assertInRepo();
         config.assertNotBare();
         return statuss.toString();
     },
 
-    clone: function (remotePath, targetPath, opts) {
+    clone: function(remotePath, targetPath, opts) {
         opts = opts || {};
 
         if (remotePath === undefined || targetPath === undefined) {
@@ -336,7 +336,7 @@ const gitlet = module.exports = {
 
             if (!fs.existsSync(targetPath)) fs.mkdirSync(targetPath);
 
-            util.onRemote(targetPath)(function () {
+            util.onRemote(targetPath)(function() {
 
                 gitlet.init(opts);
 
@@ -354,7 +354,7 @@ const gitlet = module.exports = {
         }
     },
 
-    update_index: function (path, opts) {
+    update_index: function(path, opts) {
         files.assertInRepo();
         config.assertNotBare();
         opts = opts || {};
@@ -390,12 +390,12 @@ const gitlet = module.exports = {
         }
     },
 
-    write_tree: function (_) {
+    write_tree: function(_) {
         files.assertInRepo();
         return objects.writeTree(files.nestFlatTree(index.toc()));
     },
 
-    update_ref: function (refToUpdate, refToUpdateTo, _) {
+    update_ref: function(refToUpdate, refToUpdateTo, _) {
         files.assertInRepo();
 
         const hash = refs.hash(refToUpdateTo);
