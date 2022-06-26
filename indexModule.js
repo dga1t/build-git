@@ -18,4 +18,18 @@ const index = {
     key: function(path, stage) {
         return path + "," + stage;
     },
+
+    keyPieces: function(key) {
+        const pieces = key.split(/,/);
+        return { path: pieces[0], stage: parseInt(pieces[1]) };
+    },
+
+    toc: function() {
+        const idx = index.read();
+        return Object.keys(idx).reduce(function(obj, k) { return util.setIn(obj, [k.split(",")[0], idx[k]]); }, {});
+    },
+
+    isFileInConflict: function(path) {
+        return index.hasFile(path, 2);
+    },
 }
