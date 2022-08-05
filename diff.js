@@ -72,6 +72,7 @@ const diff = {
 
   changedFilesCommitWouldOverwrite: function (hash) {
     const headHash = refs.hash("HEAD");
+
     return util.intersection(
       Object.keys(diff.nameStatus(diff.diff(headHash))),
       Object.keys(diff.nameStatus(diff.diff(headHash, hash)))
@@ -81,6 +82,7 @@ const diff = {
   addedOrModifiedFiles: function () {
     const headToc = refs.hash("HEAD") ? objects.commitToc(refs.hash("HEAD")) : {};
     const wc = diff.nameStatus(diff.tocDiff(headToc, index.workingCopyToc()));
+    
     return Object.keys(wc).filter(function (p) {
       return wc[p] !== diff.FILE_STATUS.DELETE;
     });
