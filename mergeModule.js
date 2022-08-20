@@ -80,5 +80,26 @@ const merge = {
     });
   },
 
-  
+  writeFastForwardMerge: function (receiverHash, giverHash) {
+    refs.write(refs.toLocalRef(refs.headBranchName()), giverHash);
+    index.write(index.tocToIndex(objects.commitToc(giverHash)));
+
+    if (!config.isBare()) {
+      const receiverToc =
+        receiverHash === undefined ? {} : objects.commitToc(receiverHash);
+      workingCopy.write(
+        diff.tocDiff(receiverToc, objects.commitToc(giverHash))
+      );
+    }
+  },
+
+  writeNonFastForwardMerge: function (receiverHash, giverHash, giverRef) {
+    refs.write("MERGE_HEAD", giverHash);
+    merge.writeMergeMsg(receiverHash, giverHash, giverRef);
+    merge.writeIndex(receiverHash, giverHash);
+
+    if (!config.isBare()) {
+      workingCopy.write(merge.mergeDiff(receiverHash, giverHash));
+    }
+  },
 };
